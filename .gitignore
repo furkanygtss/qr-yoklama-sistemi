@@ -1,0 +1,16 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local environment & databases
+attendance.db
+*.db
+*.sqlite3
+
+# Large binaries (cloudflared can be downloaded if needed)
+cloudflared.exe
+
+# OS generated files
+Thumbs.db
+.DS_Store
