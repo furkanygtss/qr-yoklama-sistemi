@@ -274,7 +274,7 @@ def generate_report():
         ("5. Kullanıcı Rolleri ve Uçtan Uca İş Akışları", "Öğretmen projeksiyon paneli ve öğrenci mobil tarama süreçleri"),
         ("6. REST API Uç Noktaları ve Entegrasyon", "JSON servisleri, token doğrulama ve gerçek zamanlı sorgular"),
         ("7. Güvenlik, Sahteciliği Önleme ve Kıyaslama Analizi", "Kağıt vs Statik QR vs Dinamik QR güvenlik karşılaştırma matrisi"),
-        ("8. Kurulum, Yapılandırma ve Çalıştırma Kılavuzu", "Adım adım kurulum, Wi-Fi ağ yapılandırması ve canlı test"),
+        ("8. Sistemin Başlatılması ve Kalıcı 7/24 Ücretsiz Bulut Dağıtımı", "Gunicorn WSGI üretim sunucusu, Render.com entegrasyonu ve canlı yayın"),
         ("9. Gelecek Geliştirmeler ve Yol Haritası", "ÖBS entegrasyonu, BLE Beacon ve hibrit doğrulama önerileri"),
         ("10. Sonuç", "Projenin eğitime ve sınıf yönetimine sağladığı somut faydalar")
     ]
@@ -602,15 +602,27 @@ def generate_report():
     doc.add_paragraph().paragraph_format.space_after = Pt(8)
 
     # ==================== CHAPTER 8 ====================
-    format_heading1(doc, "8. KURULUM, YAPILANDIRMA VE ÇALIŞTIRMA KILAVUZU")
+    format_heading1(doc, "8. SİSTEMİN BAŞLATILMASI VE KALICI 7/24 ÜCRETSİZ BULUT DAĞITIMI (RENDER.COM)")
     format_body(doc,
-        "Sistem herhangi bir harici bağımlılık gerektirmeden, standart bir Python 3 ortamında saniyeler içinde ayağa kaldırılabilir:"
+        "Sistem, herhangi bir yerel bilgisayara veya geçici tünellere bağımlı olmaksızın, doğrudan profesyonel bulut altyapısında (Render.com) 7 gün 24 saat kesintisiz ve ücretsiz olarak çalışacak şekilde yapılandırılmıştır. Dünyanın her yerinden SSL/TLS güvenlik sertifikalı (HTTPS) resmi web adresiyle erişilebilir."
     )
 
-    format_heading2(doc, "8.1. Gereksinimler ve Bağımlılıkların Yüklenmesi")
-    format_body(doc, "Terminal veya PowerShell açılarak proje dizininde şu komut çalıştırılır:", bold_prefix="Komut: ")
-    
-    # Code block simulated in table
+    format_heading2(doc, "8.1. Üretim Mimarisi ve WSGI Sunucusu (Gunicorn)")
+    format_body(doc,
+        "Flask'ın yerleşik geliştirme sunucusu yerine, eşzamanlı yüzlerce öğrenci isteğini milisaniyeler mertebesinde karşılayabilen kurumsal standarttaki Gunicorn WSGI sunucusu entegre edilmiştir. Bulut sunucusu her ayağa kalktığında veritabanı kütüphanesini ve yetkili öğretmen/öğrenci kayıtlarını otomatik olarak hazırlar."
+    )
+
+    format_heading2(doc, "8.2. Bulut Yapılandırma Dosyaları")
+    format_bullet(doc, "Render platformunun Python ortamını, bağımlılıkları ve çalıştırma parametrelerini otomatik tanımasını sağlayan altyapı şablonu.", "render.yaml: ")
+    format_bullet(doc, "'web: gunicorn wsgi:app' direktifi ile konteyner başlatıldığında çalıştırılacak üretim emrini belirler.", "Procfile: ")
+    format_bullet(doc, "Veritabanını başlatan ve Flask uygulamasını servis eden üretim giriş noktası.", "wsgi.py: ")
+    format_bullet(doc, "Flask, Gunicorn, python-docx, qrcode ve Pillow gibi tüm üretim bağımlılıklarını içerir.", "requirements.txt: ")
+
+    format_heading2(doc, "8.3. Başlatma ve Canlıya Alma Komutları")
+    format_body(doc, "Render üzerinde projenin ayağa kaldırılması için tanımlanan komutlar şunlardır:")
+
+    # Build Command Table
+    format_body(doc, "1. Derleme ve Bağımlılık Yükleme Komutu (Build Command):", bold_prefix="")
     code_tbl1 = doc.add_table(rows=1, cols=1)
     code_tbl1.alignment = WD_TABLE_ALIGNMENT.CENTER
     c1 = code_tbl1.cell(0, 0)
@@ -627,9 +639,8 @@ def generate_report():
 
     doc.add_paragraph().paragraph_format.space_after = Pt(6)
 
-    format_heading2(doc, "8.2. Sistemin Başlatılması")
-    format_body(doc, "Uygulama sunucusunu çalıştırmak için:", bold_prefix="Komut: ")
-
+    # Start Command Table
+    format_body(doc, "2. Uygulama Başlatma Komutu (Start Command):", bold_prefix="")
     code_tbl2 = doc.add_table(rows=1, cols=1)
     code_tbl2.alignment = WD_TABLE_ALIGNMENT.CENTER
     c2 = code_tbl2.cell(0, 0)
@@ -639,18 +650,14 @@ def generate_report():
     p_code2 = c2.paragraphs[0]
     p_code2.paragraph_format.space_before = Pt(0)
     p_code2.paragraph_format.space_after = Pt(0)
-    r_code2 = p_code2.add_run("python app.py")
+    r_code2 = p_code2.add_run("gunicorn wsgi:app")
     r_code2.font.name = "Consolas"
     r_code2.font.size = Pt(9.5)
     r_code2.font.color.rgb = RGBColor(74, 222, 128) # Light Green
 
     doc.add_paragraph().paragraph_format.space_after = Pt(6)
 
-    format_body(doc,
-        "Sunucu başlatıldığında konsol çıktısında bilgisayarınızın yerel ağ IP adresi (Örn: http://192.168.1.113:5000) yazdırılacaktır. Sınıftaki öğrencilerin telefonlarının aynı Wi-Fi ağına (veya öğretmenin telefonundan açtığı kişisel erişim noktasına - Hotspot) bağlı olması yeterlidir."
-    )
-
-    format_heading2(doc, "8.3. Otomatik Testlerin Çalıştırılması")
+    format_heading2(doc, "8.4. Otomatik Testlerin Çalıştırılması")
     format_body(doc,
         "Sistemin kimlik doğrulama, token üretimi, duplicate check ve CSV dışa aktarma yeteneklerini doğrulamak için hazırlanan test paketi şu komutla koşturulur:"
     )
@@ -668,34 +675,6 @@ def generate_report():
     r_code3.font.name = "Consolas"
     r_code3.font.size = Pt(9.5)
     r_code3.font.color.rgb = RGBColor(250, 204, 21) # Amber
-
-    doc.add_paragraph().paragraph_format.space_after = Pt(6)
-
-    format_heading2(doc, "8.4. Canlı Sunum ve Tek Tıkla Dünyaya Açık Web Sitesi (Cloudflare Tunnel)")
-    format_body(doc,
-        "Dersin hocasına veya jüriye canlı sunum yaparken, sınıftaki herkesin kendi telefonundan (hücresel veri dahil) anında bağlanabilmesi için sisteme 'Tek Tıkla Canlı Sunum Başlatıcı' entegre edilmiştir. Çift tıklama ile çalışan başlatıcı, anında resmi ve ücretsiz bir Cloudflare HTTPS web sitesi adresi üretir:"
-    )
-
-    code_tbl4 = doc.add_table(rows=1, cols=1)
-    code_tbl4.alignment = WD_TABLE_ALIGNMENT.CENTER
-    c4 = code_tbl4.cell(0, 0)
-    c4.width = Inches(6.5)
-    set_cell_background(c4, "1E293B")
-    set_cell_margins(c4, top=100, bottom=100, left=140, right=140)
-    p_code4 = c4.paragraphs[0]
-    p_code4.paragraph_format.space_before = Pt(0)
-    p_code4.paragraph_format.space_after = Pt(0)
-    r_code4 = p_code4.add_run("python online_sunum_baslat.py   (veya online_sunum_baslat.bat)")
-    r_code4.font.name = "Consolas"
-    r_code4.font.size = Pt(9.5)
-    r_code4.font.color.rgb = RGBColor(56, 189, 248) # Cyan
-
-    doc.add_paragraph().paragraph_format.space_after = Pt(6)
-
-    format_heading2(doc, "8.5. Kalıcı 7/24 Ücretsiz Bulut Dağıtımı (Render.com)")
-    format_body(doc,
-        "Projeyi bilgisayar kapalıyken dahi 7/24 internette yayında tutmak için proje dizinine 'render.yaml', 'Procfile' ve 'wsgi.py' üretim konfigürasyonları eklenmiştir. GitHub deposu bağlandığında Render.com üzerinde tamamen ücretsiz olarak barındırılabilir."
-    )
 
     doc.add_paragraph().paragraph_format.space_after = Pt(8)
 
