@@ -1,0 +1,469 @@
+{% extends "base.html" %}
+
+{% block title %}Canlı Yoklama Ekranı - {{ session.course_code }} | QR Yoklama{% endblock %}
+
+{% block head %}
+<style>
+    .scanner-glow {
+        box-shadow: 0 0 35px -5px rgba(59, 130, 246, 0.4);
+    }
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(12px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .new-scan-animate {
+        animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Top Projection Header -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 mb-1">
+                <span class="px-2.5 py-0.5 bg-blue-100 text-blue-800 font-bold font-mono text-xs rounded-md">
+                    {{ session.course_code }}
+                </span>
+                <span class="text-xs text-slate-500 font-medium">Hafta {{ session.week_number }}</span>
+                {% if session.status == 'ACTIVE' %}
+                    <span id="sessionStatusBadge" class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-xs font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                        Oturum Canlı / Açık
+                    </span>
+                {% else %}
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-100 text-slate-700 rounded-full text-xs font-semibold">
+                        <i class="fa-solid fa-lock text-[10px]"></i> Oturum Kapatıldı
+                    </span>
+                {% endif %}
+            </div>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                {{ session.title }}
+            </h1>
+            <p class="text-xs text-slate-500 mt-0.5">
+                {{ session.course_name }} &bull; {{ session.started_at }}
+            </p>
+        </div>
+
+        <!-- Header Actions -->
+        <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="toggleSound()" id="soundBtn" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition flex items-center gap-1.5" title="Sesli Bildirim">
+                <i class="fa-solid fa-volume-high text-emerald-600"></i>
+                <span id="soundText">Ses Açık</span>
+            </button>
+
+            <button onclick="toggleFullScreen()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition flex items-center gap-1.5" title="Projeksiyon Tam Ekran Modu">
+                <i class="fa-solid fa-expand"></i>
+                <span>Tam Ekran</span>
+            </button>
+
+            {% if session.status == 'ACTIVE' %}
+                <form method="POST" action="{{ url_for('close_session', session_id=session.id) }}" onsubmit="return confirm('Yoklama oturumunu kapatmak istediğinize emin misiniz? Kapatıldıktan sonra öğrenciler QR kod ile giriş yapamaz.');">
+                    <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-stop"></i>
+                        <span>Yoklamayı Bitir</span>
+                    </button>
+                </form>
+            {% else %}
+                <a href="{{ url_for('export_session_csv', session_id=session.id) }}"
+                   class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <span>Sonuçları İndir (CSV)</span>
+                </a>
+            {% endif %}
+
+            <a href="{{ url_for('reports', course_id=session.course_id) }}" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold transition">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Live Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Dynamic QR Projection Screen (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col space-y-4">
+            <div class="bg-white rounded-3xl shadow-lg border border-slate-200 p-6 md:p-8 text-center flex flex-col items-center justify-between scanner-glow relative overflow-hidden">
+                
+                <!-- Anti-Spoofing Security Ribbon -->
+                <div class="w-full flex items-center justify-between pb-4 border-b border-slate-100 text-xs">
+                    <div class="flex items-center gap-1.5 text-blue-700 font-semibold">
+                        <i class="fa-solid fa-shield-halved text-blue-600"></i>
+                        <span>Dinamik TOTP Şifreli QR</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 text-slate-500 font-mono">
+                        <span>Yenilenme:</span>
+                        <strong id="timerDisplay" class="text-blue-600 font-bold text-sm">--</strong> sn
+                    </div>
+                </div>
+
+                <!-- QR Code Box -->
+                <div class="my-6 relative flex flex-col items-center">
+                    {% if session.status == 'ACTIVE' %}
+                        <div id="qrLoading" class="w-64 h-64 md:w-80 md:h-80 flex flex-col items-center justify-center bg-slate-100 rounded-2xl border-2 border-dashed border-slate-300">
+                            <i class="fa-solid fa-spinner fa-spin text-4xl text-blue-600 mb-2"></i>
+                            <span class="text-xs font-medium text-slate-500">Dinamik QR Üretiliyor...</span>
+                        </div>
+                        <img id="qrImage" src="" alt="Dinamik Yoklama QR Kodu"
+                             class="w-64 h-64 md:w-80 md:h-80 rounded-2xl shadow-md border-4 border-slate-900 hidden transition-all duration-300">
+                    {% else %}
+                        <div class="w-64 h-64 md:w-80 md:h-80 flex flex-col items-center justify-center bg-slate-100 rounded-2xl border-2 border-slate-300 text-slate-400 p-6">
+                            <i class="fa-solid fa-lock text-5xl text-slate-400 mb-3"></i>
+                            <div class="text-base font-bold text-slate-700">Oturum Kapatıldı</div>
+                            <p class="text-xs text-slate-500 text-center mt-1">Bu oturum için yoklama alımı tamamlandı.</p>
+                        </div>
+                    {% endif %}
+
+                    <!-- Countdown Bar below QR -->
+                    {% if session.status == 'ACTIVE' %}
+                    <div class="w-64 md:w-80 mt-4">
+                        <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div id="countdownProgressBar" class="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-1000 ease-linear" style="width: 100%;"></div>
+                        </div>
+                        <div class="flex justify-between items-center text-[11px] text-slate-400 font-mono mt-1.5">
+                            <span>Token: <strong id="tokenPreview" class="text-slate-700 font-semibold">--------</strong></span>
+                            <span class="text-emerald-600 font-medium"><i class="fa-solid fa-arrows-rotate fa-spin text-[10px]"></i> Otomatik Yenilenir</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Student Instructions Banner -->
+                <div class="w-full bg-slate-900 text-white rounded-2xl p-4 text-left flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600 flex-shrink-0 flex items-center justify-center text-white">
+                            <i class="fa-solid fa-mobile-screen-button text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-blue-300 font-semibold uppercase tracking-wider">Nasıl Katılınır?</div>
+                            <div class="text-sm font-medium text-slate-100">
+                                Telefon kameranızı tahtadaki QR koda tutun veya web adresini açın:
+                            </div>
+                        </div>
+                    </div>
+                    <div id="attendUrlBanner" class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-xl font-mono text-xs text-blue-400 select-all font-bold text-center">
+                        <span id="attendUrlText">http://{{ server_ip }}:5000/attend</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Right: Live Attendance Counter & Feed (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col space-y-4">
+            
+            <!-- Real-time Stats Card -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        Sınıf Mevcudu Katılımı
+                    </span>
+                    <span id="rateBadge" class="text-xs font-bold px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full">
+                        %0 Katılım
+                    </span>
+                </div>
+
+                <div class="flex items-baseline gap-2 mb-3">
+                    <span id="presentCount" class="text-4xl font-black text-slate-900">0</span>
+                    <span class="text-lg font-bold text-slate-400">/ <span id="totalEnrolled">{{ roster|length }}</span> Öğrenci</span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="h-3 w-full bg-slate-100 rounded-full overflow-hidden p-0.5">
+                    <div id="attendanceProgressBar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- Tabbed Attendee List -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-5 flex-1 flex flex-col min-h-[460px]">
+                
+                <!-- Tab Buttons -->
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+                    <div class="flex space-x-2">
+                        <button onclick="switchTab('live')" id="tabLiveBtn" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 transition">
+                            <i class="fa-solid fa-bolt mr-1 text-amber-500"></i> Canlı Akış (<span id="liveFeedCount">0</span>)
+                        </button>
+                        <button onclick="switchTab('roster')" id="tabRosterBtn" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition">
+                            <i class="fa-solid fa-list-check mr-1"></i> Tüm Sınıf ({{ roster|length }})
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tab 1: Live Feed Container -->
+                <div id="tabLive" class="flex-1 overflow-y-auto max-h-[380px] space-y-2 pr-1">
+                    <div id="emptyLiveFeed" class="text-center py-12 text-slate-400 text-xs">
+                        <i class="fa-regular fa-clock text-3xl mb-2 text-slate-300"></i>
+                        <p>Öğrenciler QR kod okuttukça burada anında görünecektir.</p>
+                    </div>
+                    <div id="liveFeedList" class="space-y-2"></div>
+                </div>
+
+                <!-- Tab 2: Full Roster & Manual Override -->
+                <div id="tabRoster" class="flex-1 overflow-y-auto max-h-[380px] space-y-2 pr-1 hidden">
+                    <div class="text-[11px] text-slate-400 mb-2 px-1">
+                        * Telefonu olmayan veya kamerası çalışmayan öğrencileri manuel olarak işaretleyebilirsiniz.
+                    </div>
+                    {% for st in roster %}
+                    <div id="roster-row-{{ st.id }}" class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 text-xs transition">
+                        <div>
+                            <div class="font-bold text-slate-800">{{ st.full_name }}</div>
+                            <div class="text-[11px] font-mono text-slate-400">{{ st.student_number }}</div>
+                        </div>
+
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="manualMark({{ session.id }}, {{ st.id }}, 'PRESENT')"
+                                    class="mark-btn-{{ st.id }}-PRESENT px-2 py-1 rounded text-[11px] font-bold border transition {{ 'bg-emerald-600 text-white border-emerald-600' if st.attendance_status == 'PRESENT' else 'bg-slate-50 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 border-slate-200' }}">
+                                Var
+                            </button>
+                            <button onclick="manualMark({{ session.id }}, {{ st.id }}, 'LATE')"
+                                    class="mark-btn-{{ st.id }}-LATE px-2 py-1 rounded text-[11px] font-bold border transition {{ 'bg-amber-500 text-white border-amber-500' if st.attendance_status == 'LATE' else 'bg-slate-50 text-slate-600 hover:bg-amber-50 hover:text-amber-700 border-slate-200' }}">
+                                Geç
+                            </button>
+                            <button onclick="manualMark({{ session.id }}, {{ st.id }}, 'ABSENT')"
+                                    class="mark-btn-{{ st.id }}-ABSENT px-2 py-1 rounded text-[11px] font-bold border transition {{ 'bg-rose-600 text-white border-rose-600' if (st.attendance_status == 'ABSENT' or not st.attendance_status) else 'bg-slate-50 text-slate-600 hover:bg-rose-50 hover:text-rose-700 border-slate-200' }}">
+                                Yok
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Audio for scan chime (synthesized Web Audio API) -->
+<script>
+const SESSION_ID = {{ session.id }};
+const IS_ACTIVE = {{ 'true' if session.status == 'ACTIVE' else 'false' }};
+let soundEnabled = true;
+let previousCount = 0;
+let currentRemaining = 15;
+let totalInterval = 15;
+
+// Audio Chime with Web Audio API (No external sound file needed)
+function playChime() {
+    if (!soundEnabled) return;
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+    } catch(e) {
+        console.log("Audio not allowed yet:", e);
+    }
+}
+
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+    const btn = document.getElementById('soundBtn');
+    const text = document.getElementById('soundText');
+    if (soundEnabled) {
+        text.innerText = "Ses Açık";
+        btn.querySelector('i').className = "fa-solid fa-volume-high text-emerald-600";
+    } else {
+        text.innerText = "Sessiz";
+        btn.querySelector('i').className = "fa-solid fa-volume-xmark text-slate-400";
+    }
+}
+
+function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            alert(`Tam ekran hatası: ${err.message}`);
+        });
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
+
+function switchTab(tab) {
+    if (tab === 'live') {
+        document.getElementById('tabLive').classList.remove('hidden');
+        document.getElementById('tabRoster').classList.add('hidden');
+        document.getElementById('tabLiveBtn').className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 transition";
+        document.getElementById('tabRosterBtn').className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition";
+    } else {
+        document.getElementById('tabLive').classList.add('hidden');
+        document.getElementById('tabRoster').classList.remove('hidden');
+        document.getElementById('tabRosterBtn').className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 transition";
+        document.getElementById('tabLiveBtn').className = "px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 transition";
+    }
+}
+
+// 1. Fetch Dynamic QR Token from Server
+async function fetchToken() {
+    if (!IS_ACTIVE) return;
+    try {
+        const res = await fetch(`/api/session/${SESSION_ID}/token`);
+        const data = await res.json();
+
+        if (data.status === 'CLOSED') {
+            location.reload();
+            return;
+        }
+
+        if (data.qr_base64) {
+            const qrImg = document.getElementById('qrImage');
+            const qrLoading = document.getElementById('qrLoading');
+            qrImg.src = data.qr_base64;
+            qrImg.classList.remove('hidden');
+            if (qrLoading) qrLoading.classList.add('hidden');
+
+            document.getElementById('tokenPreview').innerText = data.token;
+            if (data.attendance_url) {
+                const cleanUrl = data.attendance_url.split('?')[0];
+                const bannerEl = document.getElementById('attendUrlText');
+                if (bannerEl) bannerEl.innerText = cleanUrl;
+            }
+            currentRemaining = data.seconds_remaining;
+            totalInterval = data.total_interval || 15;
+            updateCountdownUI();
+        }
+    } catch(err) {
+        console.error("Token fetch error:", err);
+    }
+}
+
+// Countdown UI updater (every second)
+function updateCountdownUI() {
+    const timerDisplay = document.getElementById('timerDisplay');
+    const progressBar = document.getElementById('countdownProgressBar');
+    if (timerDisplay) timerDisplay.innerText = currentRemaining;
+    if (progressBar) {
+        const pct = (currentRemaining / totalInterval) * 100;
+        progressBar.style.width = pct + '%';
+        if (currentRemaining <= 3) {
+            progressBar.className = "h-full bg-rose-500 transition-all duration-1000 ease-linear";
+        } else {
+            progressBar.className = "h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-1000 ease-linear";
+        }
+    }
+}
+
+// 2. Fetch Live Attendance Status & Records
+async function fetchStatus() {
+    try {
+        const res = await fetch(`/api/session/${SESSION_ID}/status`);
+        const data = await res.json();
+
+        // Update counts
+        document.getElementById('presentCount').innerText = data.present_count;
+        document.getElementById('totalEnrolled').innerText = data.total_enrolled;
+        document.getElementById('rateBadge').innerText = `%${data.attendance_percentage} Katılım`;
+        document.getElementById('attendanceProgressBar').style.width = `${data.attendance_percentage}%`;
+        document.getElementById('liveFeedCount').innerText = data.records.length;
+
+        // Check if new student checked in
+        if (data.records.length > previousCount && previousCount > 0) {
+            playChime();
+        }
+        previousCount = data.records.length;
+
+        // Render Live Feed List
+        const listContainer = document.getElementById('liveFeedList');
+        const emptyMsg = document.getElementById('emptyLiveFeed');
+
+        if (data.records.length === 0) {
+            emptyMsg.classList.remove('hidden');
+            listContainer.innerHTML = '';
+        } else {
+            emptyMsg.classList.add('hidden');
+            let html = '';
+            data.records.forEach((r, idx) => {
+                const isVeryRecent = idx === 0;
+                html += `
+                    <div class="flex items-center justify-between p-3 rounded-2xl border ${isVeryRecent ? 'bg-emerald-50/70 border-emerald-300 new-scan-animate' : 'bg-slate-50 border-slate-100'} transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full ${r.status === 'LATE' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'} flex items-center justify-center font-bold text-xs">
+                                <i class="fa-solid fa-check"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-800 text-xs">${r.full_name}</div>
+                                <div class="text-[10px] font-mono text-slate-400">${r.student_number} &bull; ${r.method === 'QR' ? 'QR Okutuldu' : 'Manuel'}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[11px] font-mono text-slate-500">${r.scanned_at ? r.scanned_at.split(' ')[1] : ''}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        }
+
+    } catch(err) {
+        console.error("Status fetch error:", err);
+    }
+}
+
+// 3. Manual Attendance Toggle
+async function manualMark(sessionId, studentId, status) {
+    try {
+        const formData = new FormData();
+        formData.append('student_id', studentId);
+        formData.append('status', status);
+
+        const res = await fetch(`/session/${sessionId}/manual-mark`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Update button styles immediately
+            ['PRESENT', 'LATE', 'ABSENT'].forEach(st => {
+                const btn = document.querySelector(`.mark-btn-${studentId}-${st}`);
+                if (btn) {
+                    if (st === status) {
+                        btn.className = `mark-btn-${studentId}-${st} px-2 py-1 rounded text-[11px] font-bold border transition ${st === 'PRESENT' ? 'bg-emerald-600 text-white border-emerald-600' : (st === 'LATE' ? 'bg-amber-500 text-white border-amber-500' : 'bg-rose-600 text-white border-rose-600')}`;
+                    } else {
+                        btn.className = `mark-btn-${studentId}-${st} px-2 py-1 rounded text-[11px] font-bold border transition bg-slate-50 text-slate-600 border-slate-200`;
+                    }
+                }
+            });
+            // Refresh status numbers
+            fetchStatus();
+        }
+    } catch(e) {
+        console.error("Manual mark error:", e);
+    }
+}
+
+// Timer loops
+if (IS_ACTIVE) {
+    fetchToken();
+    setInterval(() => {
+        currentRemaining--;
+        if (currentRemaining <= 0) {
+            fetchToken();
+        } else {
+            updateCountdownUI();
+        }
+    }, 1000);
+}
+
+// Status poll loop every 2 seconds
+fetchStatus();
+setInterval(fetchStatus, 2000);
+
+</script>
+{% endblock %}
