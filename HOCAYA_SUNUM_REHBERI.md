@@ -1,19 +1,20 @@
 # 🎓 HOCAYA SUNUM REHBERİ & CANLI DEMO SENARYOSU
 
-Bu rehber, geliştirdiğiniz **Dinamik QR Kod Tabanlı Akıllı Sınıf Yoklama Sistemi**'ni dersin hocasına veya jüriye sunarken **tam not (100/100)** almanız için adım adım hazırlanmış bir sunum kılavuzudur.
+Bu rehber, geliştirdiğiniz **Dinamik QR Kod Tabanlı Akıllı Sınıf Yoklama Sistemi**'ni dersin hocasına sunarken tam not almanız için hazırlanmış adım adım sunum kılavuzudur.
+
+Sistem **Kalıcı 7/24 Ücretsiz Bulut Dağıtımı (Render.com)** üzerinde çalışmakta olup, bilgisayarınızdan bağımsız olarak doğrudan canlı web sitesi üzerinden sunulabilir.
 
 ---
 
-## ⚡ 1. Sunum Öncesi 30 Saniyelik Hazırlık
+## ⚡ 1. Sunum Öncesi 10 Saniyelik Hazırlık
 
-1. Bilgisayarınızdan `online_sunum_baslat.bat` dosyasına çift tıklayın (veya terminalde `python online_sunum_baslat.py` çalıştırın).
-2. Konsolda beliren canlı **Cloudflare HTTPS linkinizi** kopyalayın:
-   * Örnek: `https://xxxx-xxxx-xxxx.trycloudflare.com`
-3. Tarayıcınızda açın ve öğretmen girişi yapın:
+1. Tarayıcınızda canlı bulut web sitesi adresinizi açın:
+   👉 **`https://qr-yoklama-sistemi.onrender.com`** *(veya oluşturduğunuz Render linki)*
+2. Öğretmen girişi yapın:
    * **Öğretmen:** Ahmet Deniz
-   * **Kullanıcı Adı:** `ahmetdeniz` (veya `ogretmen`)
+   * **Kullanıcı Adı:** `ahmetdeniz` *(veya `ogretmen`)*
    * **Şifre:** `admin123`
-4. Projeksiyonu bağlayın veya ekran paylaşımını başlatın.
+3. Projeksiyonu bağlayın veya ekran paylaşımını başlatın.
 
 ---
 
@@ -21,7 +22,7 @@ Bu rehber, geliştirdiğiniz **Dinamik QR Kod Tabanlı Akıllı Sınıf Yoklama 
 
 ### Adım 1: Giriş ve Problemi Tanımlama (1 Dakika)
 > *"Hocam, günümüzde 50-100 kişilik sınıflarda kağıt dolaştırarak yoklama almak hem en az 10-15 dakika ders kaybına yol açıyor, hem de öğrencilerin derste olmayan arkadaşları yerine imza atmasını engelleyemiyor. Basit statik QR kodlar ise fotoğrafı çekilip WhatsApp'tan paylaşılabildiği için hileye çok açık.*  
-> *Biz bu problemi çözmek için; bankacılık standartlarında **Dinamik TOTP (Zaman Ayarlı) QR Kod** üreten, öğrencilerin uygulama indirmesine gerek kalmadan saniyeler içinde yoklama veren akıllı bir sınıf sistemi geliştirdik."*
+> *Biz bu problemi çözmek için; bankacılık standartlarında **Dinamik TOTP (Zaman Ayarlı) QR Kod** üreten, öğrencilerin uygulama indirmesine gerek kalmadan saniyeler içinde yoklama veren ve bulutta 7/24 kesintisiz çalışan akıllı bir sınıf sistemi geliştirdik."*
 
 ### Adım 2: Canlı Yoklama Başlatma & Projeksiyon Ekranı (1 Dakika)
 * Ekranda sorumlu olduğunuz derslerden birini seçin (Örn: **YAZ401 - Yazılım Mimarisi ve Tasarımı**).
@@ -31,9 +32,9 @@ Bu rehber, geliştirdiğiniz **Dinamik QR Kod Tabanlı Akıllı Sınıf Yoklama 
 
 ### Adım 3: İnteraktif Katılım (Hocaya Telefonunu Kullandırtın!) ⭐⭐⭐
 > *"Hocam, sistemin pratikliğini canlı test etmek için lütfen telefonunuzun kamerasını tahtadaki QR koda doğru tutabilir misiniz?"*
-* Hoca telefon kamerasını tahtaya tuttuğu anda telefonunun ekranında doğrudan web sayfası bağlantısı belirecektir.
+* Hoca telefon kamerasını tahtaya tuttuğu anda telefonunun ekranında doğrudan web sitesi bağlantısı belirecektir.
 * Hoca bağlantıya tıkladığında öğrenci yoklama ekranı açılır.
-* Hocaya bir örnek öğrenci numarası söyleyin: **`252302034` (Furkan Yiğit Koygun)**.
+* Hocaya kendi öğrenci numaranızı söyleyin: **`252302034` (Furkan Yiğit Koygun)**.
 * Hoca numarayı girip **"Yoklamaya Katıl"** butonuna bastığı anda:
   1. **Tahtada sesli bir zil (ding sesi) çalacak!**
   2. Sağ taraftaki canlı akışta anında **Furkan Yiğit Koygun - 252302034 (QR ile Okutuldu - 14:05)** yeşil onay işaretiyle belirecek.
@@ -62,24 +63,7 @@ Bu rehber, geliştirdiğiniz **Dinamik QR Kod Tabanlı Akıllı Sınıf Yoklama 
 
 | Hoca Ne Sorabilir? | Vereceğiniz Hazır Cevap |
 | :--- | :--- |
-| **"Öğrencinin telefonunda internet yoksa ne olacak?"** | Öğrencinin harici bir internet paketine ihtiyacı yoktur. Sınıftaki yerel Wi-Fi ağına veya hocanın telefonundan açacağı taşınabilir Hotspot ağına bağlanması yeterlidir. İnternet olmasa dahi yerel ağ üzerinden sistem kusursuz çalışır. |
-| **"Neden mobil uygulama (.apk) yapmadınız da web yaptınız?"** | 100 kişilik bir sınıfta herkese ayrı ayrı uygulama indirtmek (iOS/Android market uyumlulukları, izinler, depolama sorunları) ilk derste en az 30 dakika kaybettirir. Web-first yaklaşım ile öğrenci hiçbir şey yüklemeden 3 saniyede yoklamasını verir. |
-| **"Veritabanı olarak ne kullandınız?"** | SQLite3 ilişkisel veritabanı kullandık. 3. Normal Form'a (3NF) uygun 6 tablo ve Foreign Key kısıtları ile tasarlandı. Büyük üniversitelerde PostgreSQL veya MySQL'e tek satır ayar ile geçiş yapılabilir. |
+| **"Sistem nerede barınıyor, benim bilgisayarıma bir şey kurmam gerekiyor mu?"** | Hayır hocam, sistem tamamen bulutta (Render.com) 7/24 kalıcı olarak yayındadır. İsteyen herkes interneti olan herhangi bir telefondan, tabletten veya bilgisayardan bağlanabilir. |
+| **"Neden mobil uygulama (.apk) yapmadınız da web yaptınız?"** | Sınıfta herkese ayrı ayrı uygulama indirtmek (iOS/Android market uyumlulukları, depolama sorunları) dersin başında en az 20-30 dakika kaybettirir. Web-first mimari ile öğrenci hiçbir şey yüklemeden 3 saniyede yoklamasını verir. |
+| **"Veritabanı olarak ne kullandınız?"** | SQLite3 ilişkisel veritabanı kullandık. 3. Normal Form'a (3NF) uygun 6 tablo ve Foreign Key kısıtları ile tasarlandı. |
 | **"Öğretmen güvenliği nasıl sağlanıyor?"** | Öğretmen paneli Werkzeug SHA-256 parola özetleme (hashing) ve oturum (session) çerezleri ile yetkilendirilmiştir. Şifresiz kimse oturum başlatamaz veya raporları göremez. |
-
----
-
-## 🌐 4. Sistemi Kalıcı 7/24 Ücretsiz Web Sitesi Olarak Yayınlama (Render.com)
-
-Projeyi bilgisayarınız açık olmadan da internette sürekli yayında tutmak isterseniz:
-1. Projeyi ücretsiz bir **GitHub** reposuna yükleyin:
-   ```bash
-   git init
-   git add .
-   git commit -m "Akilli QR Yoklama Sistemi"
-   git push origin main
-   ```
-2. [Render.com](https://render.com) adresine ücretsiz üye olun.
-3. **"New +" -> "Web Service"** seçin ve GitHub reponuzu bağlayın.
-4. Render, klasördeki `render.yaml` ve `Procfile` dosyalarını otomatik algılar.
-5. **"Deploy"** butonuna basın. 2 dakika içinde size `https://qr-yoklama.onrender.com` şeklinde ömür boyu ücretsiz bir web adresi verecektir!
