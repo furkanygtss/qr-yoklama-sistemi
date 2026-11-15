@@ -482,7 +482,7 @@ def generate_report():
     # ==================== CHAPTER 5 ====================
     format_heading1(doc, "5. KULLANICI ROLLERİ VE UÇTAN UCA İŞ AKIŞLARI")
     format_heading2(doc, "5.1. Öğretim Görevlisi / Yönetici Süreci")
-    format_bullet(doc, "Öğretmen sisteme giriş yapar (Varsayılan kullanıcı adı: ogretmen, şifre: admin123).", "Adım 1 - Kimlik Doğrulama: ")
+    format_bullet(doc, "Öğretmen sisteme giriş yapar (Varsayılan kullanıcı: ahmetdeniz / ogretmen, şifre: admin123).", "Adım 1 - Kimlik Doğrulama: ")
     format_bullet(doc, "Ders panelinden ilgili dersi seçerek 'Yeni Yoklama Başlat' butonuna tıklar. Hafta sayısı ve konu başlığını girer.", "Adım 2 - Seans Oluşturma: ")
     format_bullet(doc, "Projeksiyon ekranı (Live Projection View) açılır. 'Tam Ekran' (F11) modu ile tahtaya yansıtılır.", "Adım 3 - Projeksiyona Yansıtma: ")
     format_bullet(doc, "Öğrenciler QR kod okuttukça sağ panelde anlık olarak yeşil onay işaretiyle isimleri belirir, sesli bildirim çalar ve sınıf katılım barı dolmaya başlar.", "Adım 4 - Canlı Takip: ")
@@ -492,8 +492,8 @@ def generate_report():
     format_heading2(doc, "5.2. Öğrenci Süreci")
     format_bullet(doc, "Öğrenci cep telefonunun varsayılan kamerasını açar ve tahtadaki QR koda doğru tutar. Veya web tarayıcısında http://[Sunucu-IP]:5000/attend adresine girer.", "Adım 1 - Kamerayı Açma: ")
     format_bullet(doc, "Kamera QR kodu gördüğü anda ekranda bir bildirim bağlantısı belirir. Tıklayınca ders ve oturum bilgileri otomatik yüklenmiş sayfa açılır.", "Adım 2 - Otomatik Bağlantı: ")
-    format_bullet(doc, "Öğrenci yalnızca Öğrenci Numarasını (Örn: 202301001) girer ve 'Yoklamaya Katıl' butonuna basar.", "Adım 3 - Giriş Yapma: ")
-    format_bullet(doc, "Ekran yeşil renge dönerek 'Tebrikler Zeynep Kaya! Yoklamanız 14:02 itibarıyla kaydedildi' mesajını gösterir. Aynı öğrenci aynı derste ikinci kez okutursa 'Zaten kaydedildi' uyarısı alır.", "Adım 4 - Anlık Doğrulama: ")
+    format_bullet(doc, "Öğrenci yalnızca Öğrenci Numarasını (Örn: 252302034) girer ve 'Yoklamaya Katıl' butonuna basar.", "Adım 3 - Giriş Yapma: ")
+    format_bullet(doc, "Ekran yeşil renge dönerek 'Tebrikler Furkan Yiğit Koygun! Yoklamanız 14:02 itibarıyla kaydedildi' mesajını gösterir. Aynı öğrenci aynı derste ikinci kez okutursa 'Zaten kaydedildi' uyarısı alır.", "Adım 4 - Anlık Doğrulama: ")
 
     # ==================== CHAPTER 6 ====================
     format_heading1(doc, "6. REST API UÇ NOKTALARI VE ENTEGRASYON")
