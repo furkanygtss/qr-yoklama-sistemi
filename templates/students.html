@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Öğrenci Rehberi ve Mevcut Listesi | QR Yoklama{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <i class="fa-solid fa-user-graduate text-blue-600"></i>
+                <span>Sistem Öğrenci Rehberi</span>
+            </h1>
+            <p class="text-xs text-slate-500 mt-1">Sistemde kayıtlı tüm öğrencilerin listesi ve ders kayıt bilgileri</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <span class="px-3.5 py-1.5 bg-blue-50 text-blue-700 font-bold rounded-xl text-xs font-mono">
+                Toplam: {{ students|length }} Öğrenci
+            </span>
+        </div>
+    </div>
+
+    <!-- Student Cards / Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-100">
+                    <tr>
+                        <th class="py-3 px-4">#</th>
+                        <th class="py-3 px-4">Öğrenci No</th>
+                        <th class="py-3 px-4">Adı Soyadı</th>
+                        <th class="py-3 px-4">Bölüm</th>
+                        <th class="py-3 px-4">Sınıf</th>
+                        <th class="py-3 px-4">E-Posta</th>
+                        <th class="py-3 px-4 text-center">Kayıtlı Ders</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-xs">
+                    {% for st in students %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 px-4 text-slate-400 font-mono">{{ loop.index }}</td>
+                        <td class="py-3 px-4 font-mono font-bold text-slate-900">{{ st.student_number }}</td>
+                        <td class="py-3 px-4 font-bold text-slate-800">{{ st.full_name }}</td>
+                        <td class="py-3 px-4 text-slate-600">{{ st.department }}</td>
+                        <td class="py-3 px-4 font-medium">{{ st.class_year }}. Sınıf</td>
+                        <td class="py-3 px-4 font-mono text-slate-500">{{ st.email }}</td>
+                        <td class="py-3 px-4 text-center">
+                            <span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full font-bold">
+                                {{ st.enrolled_course_count }} Ders
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
