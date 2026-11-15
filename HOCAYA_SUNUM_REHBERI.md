@@ -10,7 +10,8 @@ Bu rehber, geliştirdiğiniz **Dinamik QR Kod Tabanlı Akıllı Sınıf Yoklama 
 2. Konsolda beliren canlı **Cloudflare HTTPS linkinizi** kopyalayın:
    * Örnek: `https://xxxx-xxxx-xxxx.trycloudflare.com`
 3. Tarayıcınızda açın ve öğretmen girişi yapın:
-   * **Kullanıcı Adı:** `ogretmen`
+   * **Öğretmen:** Ahmet Deniz
+   * **Kullanıcı Adı:** `ahmetdeniz` (veya `ogretmen`)
    * **Şifre:** `admin123`
 4. Projeksiyonu bağlayın veya ekran paylaşımını başlatın.
 
@@ -32,11 +33,11 @@ Bu rehber, geliştirdiğiniz **Dinamik QR Kod Tabanlı Akıllı Sınıf Yoklama 
 > *"Hocam, sistemin pratikliğini canlı test etmek için lütfen telefonunuzun kamerasını tahtadaki QR koda doğru tutabilir misiniz?"*
 * Hoca telefon kamerasını tahtaya tuttuğu anda telefonunun ekranında doğrudan web sayfası bağlantısı belirecektir.
 * Hoca bağlantıya tıkladığında öğrenci yoklama ekranı açılır.
-* Hocaya bir örnek öğrenci numarası söyleyin: **`202301001` (Zeynep Kaya)**.
+* Hocaya bir örnek öğrenci numarası söyleyin: **`252302034` (Furkan Yiğit Koygun)**.
 * Hoca numarayı girip **"Yoklamaya Katıl"** butonuna bastığı anda:
   1. **Tahtada sesli bir zil (ding sesi) çalacak!**
-  2. Sağ taraftaki canlı akışta anında **Zeynep Kaya - 202301001 (QR ile Okutuldu - 14:05)** yeşil onay işaretiyle belirecek.
-  3. Sınıf mevcudu ibresi **`1 / 25 (%4)`** olarak dolacaktır!
+  2. Sağ taraftaki canlı akışta anında **Furkan Yiğit Koygun - 252302034 (QR ile Okutuldu - 14:05)** yeşil onay işaretiyle belirecek.
+  3. Sınıf mevcudu ibresi **`1 / 5 (%20)`** olarak dolacaktır!
 
 ### Adım 4: Hile Önleme Testi (Jürinin En Çok Sevdiği Kısım!)
 > *"Hocam, peki bir öğrenci bu QR'ın fotoğrafını çekip sınıfta olmayan arkadaşına gönderirse ne olur?"*
@@ -45,9 +46,9 @@ Bu rehber, geliştirdiğiniz **Dinamik QR Kod Tabanlı Akıllı Sınıf Yoklama 
 
 ### Adım 5: Mükerrer (Çift) Kayıt ve Manuel İstisna Yönetimi
 * Hocaya aynı öğrenci numarasını tekrar göndermesini rica edin:
-  * Sistem anında **"Sayın Zeynep Kaya, yoklamanız daha önce zaten alınmıştır!"** uyarısını verir.
+  * Sistem anında **"Sayın Furkan Yiğit Koygun, yoklamanız daha önce zaten alınmıştır!"** uyarısını verir.
 * *"Peki hocam, bir öğrencinin şarjı biterse ne yapıyoruz?"* sorusunu kendiniz sorup yanıtlayın:
-  * Tahtada **"Tüm Sınıf"** sekmesine geçin. Listeden istediğiniz öğrencinin yanındaki **"Var"** veya **"Geç"** butonuna tek tıkla basarak manuel olarak işaretleyin.
+  * Tahtada **"Tüm Sınıf"** sekmesine geçin. Listeden diğer öğrencilerin (Örn: **Ahmet Yılmaz - 252302035** veya **Mehmet Kaya - 252302036**) yanındaki **"Var"** veya **"Geç"** butonuna tek tıkla basarak manuel olarak işaretleyin.
 
 ### Adım 6: Yoklamayı Bitirme ve Tek Tıkla Excel / CSV Raporu Alma
 * Sağ üstteki kırmızı **"Yoklamayı Bitir"** butonuna tıklayın.
