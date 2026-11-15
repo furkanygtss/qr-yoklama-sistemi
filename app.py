@@ -21,6 +21,10 @@ from token_service import get_current_token_info, verify_token, get_server_ip
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "qr_attendance_super_secret_key_2026")
 
+# Ensure database tables and initial seed data exist
+with app.app_context():
+    init_db(seed=True)
+
 @app.teardown_appcontext
 def close_db(error):
     db = g.pop('db', None)
