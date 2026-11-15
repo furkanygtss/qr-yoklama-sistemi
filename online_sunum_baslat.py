@@ -85,7 +85,7 @@ def main():
         print("-" * 75)
         print("📌 HOCAYA SUNUM İÇİN HIZLI BAĞLANTILAR:")
         print(f"👨‍🏫 Öğretmen Paneli Girişi : {public_url}/login")
-        print(f"   (Varsayılan Giriş: ogretmen / admin123)")
+        print(f"   (Öğretmen: Ahmet Deniz | Kullanıcı Adı: ahmetdeniz | Şifre: admin123)")
         print(f"📱 Öğrenci Yoklama Ekranı: {public_url}/attend")
         print(f"📸 Kamera ile QR Okuyucu  : {public_url}/student/scan")
         print("-" * 75)
