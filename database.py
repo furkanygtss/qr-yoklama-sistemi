@@ -133,17 +133,23 @@ def seed_data(conn):
     if cursor.fetchone()[0] > 0:
         return # Data already seeded
 
-    print("Seeding initial database records...")
+    print("Seeding database with real instructor and students...")
 
-    # Seed Teacher User
+    # Seed Teacher: Ahmet Deniz (supports username: 'ahmetdeniz' and 'ogretmen')
     teacher_pw = generate_password_hash("admin123")
     cursor.execute('''
     INSERT INTO users (username, password_hash, full_name, email, role)
     VALUES (?, ?, ?, ?, ?)
-    ''', ('ogretmen', teacher_pw, 'Prof. Dr. Ahmet Yılmaz', 'ahmet.yilmaz@universite.edu.tr', 'teacher'))
+    ''', ('ahmetdeniz', teacher_pw, 'Ahmet Deniz', 'ahmet.deniz@universite.edu.tr', 'teacher'))
     teacher_id = cursor.lastrowid
 
-    # Seed Courses
+    # Also keep 'ogretmen' alias for quick fallback
+    cursor.execute('''
+    INSERT INTO users (username, password_hash, full_name, email, role)
+    VALUES (?, ?, ?, ?, ?)
+    ''', ('ogretmen', teacher_pw, 'Ahmet Deniz', 'ogretmen@universite.edu.tr', 'teacher'))
+
+    # Seed Courses for Ahmet Deniz
     courses_data = [
         ('YAZ401', 'Yazılım Mimarisi ve Tasarımı', 'Güz', '2026-2027', teacher_id),
         ('CEN205', 'Veri Tabanı Yönetim Sistemleri', 'Güz', '2026-2027', teacher_id),
@@ -157,33 +163,13 @@ def seed_data(conn):
         ''', c)
         course_ids.append(cursor.lastrowid)
 
-    # Seed Realistic Turkish Students Roster
+    # Real Students List
     students_data = [
-        ('202301001', 'Zeynep Kaya', 'zeynep.kaya@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301002', 'Mehmet Can Demir', 'mehmet.demir@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301003', 'Ayşe Nur Çelik', 'ayse.celik@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301004', 'Emre Şahin', 'emre.sahin@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301005', 'Elif Yıldırım', 'elif.yildirim@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301006', 'Burak Öztürk', 'burak.ozturk@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301007', 'Selin Aydın', 'selin.aydin@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301008', 'Ali Kemal Aksoy', 'ali.aksoy@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301009', 'Büşra Doğan', 'busra.dogan@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301010', 'Deniz Arslan', 'deniz.arslan@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301011', 'Onur Koç', 'onur.koc@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301012', 'Fatma Keskin', 'fatma.keskin@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301013', 'Hakan Kurt', 'hakan.kurt@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301014', 'Gamze Polat', 'gamze.polat@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301015', 'Kaan Çetin', 'kaan.cetin@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301016', 'Merve Aslan', 'merve.aslan@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301017', 'Serkan Yavuz', 'serkan.yavuz@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301018', 'İrem Şimşek', 'irem.simsek@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301019', 'Tolga Taş', 'tolga.tas@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301020', 'Gizem Eren', 'gizem.eren@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301021', 'Mustafa Gül', 'mustafa.gul@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301022', 'Ceren Bozkurt', 'ceren.bozkurt@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301023', 'Oğuzhan Tekin', 'oguzhan.tekin@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301024', 'Kübra Özdemir', 'kubra.ozdemir@ogr.edu.tr', 'Yazılım Mühendisliği', 3),
-        ('202301025', 'Barış Güler', 'baris.guler@ogr.edu.tr', 'Yazılım Mühendisliği', 3)
+        ('252302034', 'Furkan Yiğit Koygun', 'furkan.koygun@ogr.edu.tr', 'Bilgisayar ve Yazılım Mühendisliği', 2),
+        ('252302035', 'Ahmet Yılmaz', 'ahmet.yilmaz@ogr.edu.tr', 'Bilgisayar ve Yazılım Mühendisliği', 2),
+        ('252302036', 'Mehmet Kaya', 'mehmet.kaya@ogr.edu.tr', 'Bilgisayar ve Yazılım Mühendisliği', 2),
+        ('252302037', 'Zeynep Demir', 'zeynep.demir@ogr.edu.tr', 'Bilgisayar ve Yazılım Mühendisliği', 2),
+        ('252302038', 'Ali Çelik', 'ali.celik@ogr.edu.tr', 'Bilgisayar ve Yazılım Mühendisliği', 2)
     ]
 
     student_ids = []
@@ -194,65 +180,32 @@ def seed_data(conn):
         ''', s)
         student_ids.append(cursor.lastrowid)
 
-    # Enroll all students in Course 1 (YAZ401) and Course 2 (CEN205)
-    for cid in [course_ids[0], course_ids[1]]:
+    # Enroll all 5 students in all courses
+    for cid in course_ids:
         for sid in student_ids:
             cursor.execute('''
             INSERT INTO course_enrollments (course_id, student_id)
             VALUES (?, ?)
             ''', (cid, sid))
 
-    # Enroll first 15 students in Course 3 (BİL102)
-    for sid in student_ids[:15]:
-        cursor.execute('''
-        INSERT INTO course_enrollments (course_id, student_id)
-        VALUES (?, ?)
-        ''', (course_ids[2], sid))
-
-    # Seed 2 Past Attendance Sessions for Course 1 so reports have historical data
-    # Past Session 1 (Week 1)
-    d1 = (datetime.now() - timedelta(days=14)).strftime('%Y-%m-%d 10:00:00')
+    # Past Session 1 (Week 1) for reporting demo
+    d1 = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d 10:00:00')
     cursor.execute('''
     INSERT INTO attendance_sessions (course_id, title, week_number, secret_key, status, started_at, closed_at)
     VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (course_ids[0], 'Hafta 1 - Mimari Desenlere Giriş', 1, 'sec_w1_sample', 'CLOSED', d1, d1))
+    ''', (course_ids[0], 'Hafta 1 - Giriş ve Temel Kavramlar', 1, 'sec_w1_sample', 'CLOSED', d1, d1))
     s1_id = cursor.lastrowid
 
-    # 22 students were present, 1 late, 2 absent
+    # 4 students present, 1 late in past session
     for idx, sid in enumerate(student_ids):
-        if idx < 22:
-            st = 'PRESENT'
-        elif idx == 22:
-            st = 'LATE'
-        else:
-            st = 'ABSENT'
+        st = 'PRESENT' if idx < 4 else 'LATE'
         cursor.execute('''
         INSERT INTO attendance_records (session_id, student_id, status, method, scanned_at, ip_address)
         VALUES (?, ?, ?, ?, ?, ?)
         ''', (s1_id, sid, st, 'QR', d1, '192.168.1.' + str(100 + idx)))
 
-    # Past Session 2 (Week 2)
-    d2 = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d 10:00:00')
-    cursor.execute('''
-    INSERT INTO attendance_sessions (course_id, title, week_number, secret_key, status, started_at, closed_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', (course_ids[0], 'Hafta 2 - Mikroservis Mimarisi', 2, 'sec_w2_sample', 'CLOSED', d2, d2))
-    s2_id = cursor.lastrowid
-
-    for idx, sid in enumerate(student_ids):
-        if idx < 20:
-            st = 'PRESENT'
-        elif idx in [20, 21]:
-            st = 'EXCUSED'
-        else:
-            st = 'ABSENT'
-        cursor.execute('''
-        INSERT INTO attendance_records (session_id, student_id, status, method, scanned_at, ip_address)
-        VALUES (?, ?, ?, ?, ?, ?)
-        ''', (s2_id, sid, st, 'QR' if st != 'EXCUSED' else 'MANUAL', d2, '192.168.1.' + str(100 + idx)))
-
     conn.commit()
-    print("Database successfully seeded with realistic sample data!")
+    print("Database successfully seeded with real Ahmet Deniz and 5 students!")
 
 if __name__ == '__main__':
     init_db()
