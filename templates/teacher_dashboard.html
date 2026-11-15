@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block title %}Öğretmen Kontrol Paneli | QR Yoklama Sistemi{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Top Greeting & Header Bar -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+                <span>Dersler ve Yoklama Yönetimi</span>
+                <span class="text-xs font-semibold px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full border border-emerald-300">
+                    Sistem Aktif
+                </span>
+            </h1>
+            <p class="text-slate-500 text-sm mt-1">
+                Sayın {{ current_user.full_name }}, sınıfta akıllı QR yoklaması başlatabilir veya geçmiş raporları inceleyebilirsiniz.
+            </p>
+        </div>
+
+        <button onclick="openStartModal()"
+                class="inline-flex items-center justify-center space-x-2 px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition transform active:scale-95">
+            <i class="fa-solid fa-play"></i>
+            <span>Yeni Yoklama Başlat</span>
+        </button>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl">
+                <i class="fa-solid fa-book-open"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-slate-800">{{ courses|length }}</div>
+                <div class="text-xs text-slate-500 font-medium">Aktif Ders</div>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl">
+                <i class="fa-solid fa-users"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-slate-800">{{ total_students }}</div>
+                <div class="text-xs text-slate-500 font-medium">Toplam Kayıtlı Öğrenci</div>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl">
+                <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <div>
+                <div class="text-2xl font-bold text-slate-800">%{{ avg_rate }}</div>
+                <div class="text-xs text-slate-500 font-medium">Genel Katılım Oranı</div>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-2xl">
+                <i class="fa-solid fa-wifi"></i>
+            </div>
+            <div>
+                <div class="text-sm font-bold font-mono text-slate-800 truncate">{{ server_ip }}</div>
+                <div class="text-xs text-slate-500 font-medium">Sınıf Ağı IP Adresi</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Courses Grid -->
+    <div class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-graduation-cap text-blue-600"></i>
+                <span>Sorumlu Olduğunuz Dersler</span>
+            </h2>
+            <span class="text-xs text-slate-500">{{ courses|length }} ders listeleniyor</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for c in courses %}
+            <div class="bg-white rounded-2xl shadow-sm hover:shadow-md transition border border-slate-200 overflow-hidden flex flex-col justify-between">
+                <div class="p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="px-3 py-1 bg-blue-50 text-blue-700 font-bold rounded-lg text-xs font-mono">
+                            {{ c.code }}
+                        </span>
+                        <span class="text-xs text-slate-400 font-medium">
+                            {{ c.semester }} {{ c.academic_year }}
+                        </span>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900 leading-snug mb-2">
+                        {{ c.name }}
+                    </h3>
+                    <div class="flex items-center text-xs text-slate-500 gap-4 mt-4">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-group text-slate-400"></i>
+                            <strong>{{ c.student_count }}</strong> Öğrenci
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-calendar-check text-slate-400"></i>
+                            <strong>{{ c.session_count }}</strong> Oturum
+                        </span>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center gap-2">
+                    <button onclick="openStartModalForCourse('{{ c.id }}', '{{ c.code }} - {{ c.name }}')"
+                            class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5 transition">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <span>Yoklama Başlat</span>
+                    </button>
+                    <a href="{{ url_for('reports', course_id=c.id) }}"
+                       class="px-3 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-semibold transition" title="Raporları İncele">
+                        <i class="fa-solid fa-chart-simple"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Sessions Table -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
+                    <span>Son Yoklama Oturumları</span>
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Sınıfta açılmış en son yoklama seansları ve anlık durumları</p>
+            </div>
+            <a href="{{ url_for('reports') }}" class="text-xs text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
+                <span>Tüm Geçmişi Gör</span>
+                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-600">
+                <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-100">
+                    <tr>
+                        <th class="py-3.5 px-4">Ders / Oturum</th>
+                        <th class="py-3.5 px-4">Tarih & Saat</th>
+                        <th class="py-3.5 px-4 text-center">Katılım Oranı</th>
+                        <th class="py-3.5 px-4 text-center">Durum</th>
+                        <th class="py-3.5 px-4 text-right">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for s in recent_sessions %}
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="py-3.5 px-4">
+                            <div class="font-bold text-slate-800 text-sm">{{ s.course_code }}</div>
+                            <div class="text-xs text-slate-500">{{ s.title }}</div>
+                        </td>
+                        <td class="py-3.5 px-4 text-xs font-mono text-slate-600">
+                            {{ s.started_at }}
+                        </td>
+                        <td class="py-3.5 px-4 text-center">
+                            <div class="inline-flex items-center gap-2">
+                                <span class="font-bold text-slate-800">{{ s.present_count }} / {{ s.total_enrolled }}</span>
+                                {% set pct = (s.present_count / s.total_enrolled * 100)|round(1) if s.total_enrolled > 0 else 0 %}
+                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full {{ 'bg-emerald-100 text-emerald-800' if pct >= 70 else 'bg-amber-100 text-amber-800' }}">
+                                    %{{ pct }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-4 text-center">
+                            {% if s.status == 'ACTIVE' %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-semibold animate-pulse">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                    Canlı / Açık
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">
+                                    Tamamlandı
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-4 text-right space-x-2">
+                            {% if s.status == 'ACTIVE' %}
+                                <a href="{{ url_for('live_session', session_id=s.id) }}"
+                                   class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold inline-flex items-center gap-1 shadow-sm transition">
+                                    <i class="fa-solid fa-tv"></i>
+                                    <span>Tahtaya Yansıt</span>
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('live_session', session_id=s.id) }}"
+                                   class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold inline-flex items-center gap-1 transition">
+                                    <i class="fa-solid fa-eye"></i>
+                                    <span>Detay</span>
+                                </a>
+                                <a href="{{ url_for('export_session_csv', session_id=s.id) }}"
+                                   class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold inline-flex items-center gap-1 transition" title="Excel/CSV İndir">
+                                    <i class="fa-solid fa-file-csv"></i>
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="py-8 text-center text-slate-400 text-sm">
+                            Henüz açılmış bir yoklama oturumu bulunmamaktadır.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Start New Attendance Session -->
+<div id="startModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 transform transition-all">
+        <!-- Modal Header -->
+        <div class="bg-slate-900 text-white p-5 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white">
+                    <i class="fa-solid fa-qrcode text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold">Yeni Yoklama Oturumu Başlat</h3>
+                    <p class="text-xs text-slate-400">Projeksiyonda dinamik QR kod üretecek seansı başlatın</p>
+                </div>
+            </div>
+            <button onclick="closeStartModal()" class="text-slate-400 hover:text-white transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Modal Form -->
+        <form method="POST" action="{{ url_for('start_session') }}" class="p-6 space-y-4">
+            <div>
+                <label for="modalCourseSelect" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                    Ders Seçiniz
+                </label>
+                <select id="modalCourseSelect" name="course_id" required
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    {% for c in courses %}
+                        <option value="{{ c.id }}">{{ c.code }} - {{ c.name }} ({{ c.student_count }} Öğrenci)</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="sessionWeek" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                        Ders Haftası
+                    </label>
+                    <input type="number" id="sessionWeek" name="week_number" value="3" min="1" max="16" required
+                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="tokenInterval" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                        QR Yenileme (Sn)
+                    </label>
+                    <select id="tokenInterval" name="token_interval_seconds"
+                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="10">10 Saniye (Maksimum Güvenlik)</option>
+                        <option value="15" selected>15 Saniye (Önerilen)</option>
+                        <option value="30">30 Saniye (Geniş Sınıflar)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label for="sessionTitle" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                    Oturum / Konu Başlığı
+                </label>
+                <input type="text" id="sessionTitle" name="title" value="Hafta 3 - Mimari Desenler ve MVC" required
+                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                       placeholder="Örn: Hafta 3 - Nesne Yönelimli Tasarım">
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-200 flex items-start space-x-3 text-xs text-blue-900">
+                <i class="fa-solid fa-shield-halved text-blue-600 text-base mt-0.5"></i>
+                <div>
+                    <strong>Dinamik QR Güvenliği:</strong> QR kod tahtada her 15 saniyede bir otomatik şifrelenerek yenilenir. Fotoğraf çekilip WhatsApp'tan arkadaşına gönderilse bile süre dolduğu için geçersiz olur!
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-4 flex items-center justify-end space-x-3">
+                <button type="button" onclick="closeStartModal()" class="px-4 py-2.5 text-slate-600 hover:bg-slate-100 rounded-xl text-xs font-semibold transition">
+                    İptal
+                </button>
+                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition flex items-center space-x-2">
+                    <i class="fa-solid fa-play"></i>
+                    <span>Oturumu Başlat ve Projeksiyona Yansıt</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openStartModal() {
+    document.getElementById('startModal').classList.remove('hidden');
+}
+
+function openStartModalForCourse(courseId, courseTitle) {
+    document.getElementById('modalCourseSelect').value = courseId;
+    document.getElementById('sessionTitle').value = courseTitle + " - Günlük Yoklama";
+    openStartModal();
+}
+
+function closeStartModal() {
+    document.getElementById('startModal').classList.add('hidden');
+}
+</script>
+{% endblock %}
