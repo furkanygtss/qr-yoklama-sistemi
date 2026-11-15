@@ -22,17 +22,17 @@ class QRAttendanceTestCase(unittest.TestCase):
 
     def test_02_teacher_login_success(self):
         response = self.client.post('/login', data={
-            'username': 'ogretmen',
+            'username': 'ahmetdeniz',
             'password': 'admin123'
         }, follow_redirects=True)
         self.assertEqual(response.status_code, 200)
-        self.assertIn('Prof. Dr. Ahmet Yılmaz'.encode('utf-8'), response.data)
+        self.assertIn('Ahmet Deniz'.encode('utf-8'), response.data)
 
     def test_03_dashboard_loads(self):
         with self.client.session_transaction() as sess:
             sess['user_id'] = 1
-            sess['username'] = 'ogretmen'
-            sess['full_name'] = 'Prof. Dr. Ahmet Yılmaz'
+            sess['username'] = 'ahmetdeniz'
+            sess['full_name'] = 'Ahmet Deniz'
             sess['role'] = 'teacher'
 
         response = self.client.get('/dashboard')
@@ -49,8 +49,8 @@ class QRAttendanceTestCase(unittest.TestCase):
     def test_05_start_session_and_token_api(self):
         with self.client.session_transaction() as sess:
             sess['user_id'] = 1
-            sess['username'] = 'ogretmen'
-            sess['full_name'] = 'Prof. Dr. Ahmet Yılmaz'
+            sess['username'] = 'ahmetdeniz'
+            sess['full_name'] = 'Ahmet Deniz'
             sess['role'] = 'teacher'
 
         # Start a new test session
@@ -81,19 +81,19 @@ class QRAttendanceTestCase(unittest.TestCase):
         attend_res = self.client.post('/api/attend/submit', json={
             'session_id': session_id,
             'token': active_token,
-            'student_number': '202301001'
+            'student_number': '252302034'
         })
         self.assertEqual(attend_res.status_code, 200)
         attend_data = attend_res.get_json()
         self.assertTrue(attend_data['success'])
         self.assertFalse(attend_data['already_recorded'])
-        self.assertEqual(attend_data['student_name'], 'Zeynep Kaya')
+        self.assertEqual(attend_data['student_name'], 'Furkan Yiğit Koygun')
 
         # Test duplicate attendance check
         dup_res = self.client.post('/api/attend/submit', json={
             'session_id': session_id,
             'token': active_token,
-            'student_number': '202301001'
+            'student_number': '252302034'
         })
         self.assertEqual(dup_res.status_code, 200)
         dup_data = dup_res.get_json()
@@ -104,7 +104,7 @@ class QRAttendanceTestCase(unittest.TestCase):
         invalid_res = self.client.post('/api/attend/submit', json={
             'session_id': session_id,
             'token': 'fake_expired_token',
-            'student_number': '202301002'
+            'student_number': '252302035'
         })
         self.assertEqual(invalid_res.status_code, 400)
         self.assertFalse(invalid_res.get_json()['success'])
@@ -118,8 +118,8 @@ class QRAttendanceTestCase(unittest.TestCase):
     def test_06_reports_and_csv_export(self):
         with self.client.session_transaction() as sess:
             sess['user_id'] = 1
-            sess['username'] = 'ogretmen'
-            sess['full_name'] = 'Prof. Dr. Ahmet Yılmaz'
+            sess['username'] = 'ahmetdeniz'
+            sess['full_name'] = 'Ahmet Deniz'
             sess['role'] = 'teacher'
 
         rep_res = self.client.get('/reports')
@@ -128,7 +128,7 @@ class QRAttendanceTestCase(unittest.TestCase):
         csv_res = self.client.get('/reports/session/1/export')
         self.assertEqual(csv_res.status_code, 200)
         self.assertIn('text/csv', csv_res.headers['Content-Type'])
-        self.assertIn('Zeynep Kaya'.encode('utf-8'), csv_res.data)
+        self.assertIn('Furkan Yiğit Koygun'.encode('utf-8'), csv_res.data)
 
 if __name__ == '__main__':
     unittest.main()
